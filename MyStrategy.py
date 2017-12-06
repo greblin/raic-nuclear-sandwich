@@ -2,11 +2,12 @@ from model.Game import Game
 from model.Move import Move
 from model.Player import Player
 from model.World import World
-from model.ActionType import ActionType
 
+from Constant import Constant
 from Initializer import Initializer
 from ActionQueue import ActionQueue
-
+from WeatherMap import WeatherMap
+from TerrainMap import TerrainMap
 from ActionStrategy import ActionStrategy
 from NaiveStrategy import NaiveStrategy
 
@@ -15,6 +16,9 @@ class MyStrategy:
     game = None
     world = None
     me = None
+
+    __weather_map = None
+    __terrain_map = None
 
     vehicleById = {}
     updateTickByVehicleId = {}
@@ -29,6 +33,8 @@ class MyStrategy:
     def initialize_strategy(self):
         self.initializer = Initializer(self.world)
         self.actionQueue = ActionQueue(self.world)
+        self.__weather_map = WeatherMap(self.world.weather_by_cell_x_y, Constant.WEATHER_MAP_CELL_SIZE)
+        self.__terrain_map = TerrainMap(self.world.terrain_by_cell_x_y, Constant.TERRAIN_MAP_CELL_SIZE)
 
     def initialize_tick(self):
         self.updatedVehicleXY = {}
@@ -73,9 +79,9 @@ class MyStrategy:
                 self.initializer.prepare_step(self.me, self.world, self.allVehicles)
                 self.initializer.perform_current_step(self.actionQueue, self.updatedVehicleXY)
             elif self.initializer.current_step == Initializer.STEP_INTERRUPT_STOP:
-                self.strategy = NaiveStrategy(self.actionQueue, self.world)
+                self.strategy = NaiveStrategy(self.actionQueue, self.world, self.__weather_map, self.__terrain_map)
             else:
-                self.strategy = NaiveStrategy(self.actionQueue, self.world)
+                self.strategy = NaiveStrategy(self.actionQueue, self.world, self.__weather_map, self.__terrain_map)
 
         if me.remaining_action_cooldown_ticks > 0:
             return

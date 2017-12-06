@@ -9,6 +9,8 @@ from ActionStrategy import ActionStrategy
 from Action import Action
 from ActionQueue import ActionQueue
 from Constant import Constant
+from WeatherMap import WeatherMap
+from TerrainMap import TerrainMap
 
 
 class NaiveStrategy(ActionStrategy):
@@ -16,8 +18,8 @@ class NaiveStrategy(ActionStrategy):
     nuclearStrikeInQueue = False
     currentOrthogonalVector = None
 
-    def __init__(self, action_queue: ActionQueue, world: World):
-        super().__init__(action_queue, world)
+    def __init__(self, action_queue: ActionQueue, world: World, weather_map: WeatherMap, terrain_map: TerrainMap):
+        super().__init__(action_queue, world, weather_map, terrain_map)
         self.lastNuclearStrikeTick = world.tick_index
         self.currentOrthogonalVector = np.array([0, 1])
 
@@ -73,8 +75,14 @@ class NaiveStrategy(ActionStrategy):
                     x_diff = 48 if x_diff > 0 else -48
                 if abs(y_diff) > 48:
                     y_diff = 48 if y_diff > 0 else -48
+
+                from_topleft, from_bottomright = f.find_topleft(), f.find_bottomright()
+                to_topleft = from_topleft[0] + y_diff, from_topleft[1] + x_diff
+                to_bottomright = from_bottomright[0] + y_diff, from_bottomright[1] + x_diff
+                speed_factor = self._terrain_map.get_minimum_speed_factor_on_path(from_topleft, from_bottomright, to_topleft, to_bottomright)
+
                 self.actionQueue.push(Action.clear_and_select())
-                self.actionQueue.push(Action.move(x_diff, y_diff, 0.18))
+                self.actionQueue.push(Action.move(x_diff, y_diff, 0.3 * speed_factor))
 
 
     def _find_maximum_density_squares(self, all_vehicles, x: int, y: int, size: int, min_size: int = 64):

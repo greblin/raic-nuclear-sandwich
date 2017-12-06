@@ -14,8 +14,8 @@ class CharacteristicMap:
         from_i_bottomright, from_j_bottomright = self._transform_real_coords_to_map_coords(*from_bottomright)
         to_i_topleft, to_j_topleft = self._transform_real_coords_to_map_coords(*to_topleft)
         to_i_bottomright, to_j_bottomright = self._transform_real_coords_to_map_coords(*to_bottomright)
-        i_topleft, j_topleft = min(from_i_topleft, to_i_topleft), min(from_j_topleft, to_j_topleft)
-        i_bottomright, j_bottomright = max(from_i_bottomright, to_i_bottomright), max(from_j_bottomright, to_j_bottomright)
+        i_topleft, j_topleft = max(min(from_i_topleft, to_i_topleft), 0), max(min(from_j_topleft, to_j_topleft), 0)
+        i_bottomright, j_bottomright = min(max(from_i_bottomright, to_i_bottomright), 31), min(max(from_j_bottomright, to_j_bottomright), 31)
         submap = {}
         for i in range(i_topleft, i_bottomright+1):
             rowmap = {}
