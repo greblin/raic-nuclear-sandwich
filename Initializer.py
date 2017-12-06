@@ -136,6 +136,7 @@ class Initializer:
             self.__perform_casual_step(InitializerStep9_InterruptShiftAirUnits, action_queue, updated_vehicle_x_y)
 
     def __check_interrupt_condition(self):
+        return False  # кажется, прерывание построения было ошибочным решением
         ally_formation = Formation(self.__all_vehicles, self.__me, ownership=Ownership.ALLY)
         yc, xc = ally_formation.find_geometrical_center()
         f = Formation(self.__all_vehicles, self.__me, ownership=Ownership.ENEMY, distance_limit=(xc, yc, 512))

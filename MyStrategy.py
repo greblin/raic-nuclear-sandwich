@@ -2,15 +2,18 @@ from model.Game import Game
 from model.Move import Move
 from model.Player import Player
 from model.World import World
+from model.ActionType import ActionType
 
 from Constant import Constant
 from Initializer import Initializer
 from ActionQueue import ActionQueue
+from Action import Action
 from WeatherMap import WeatherMap
 from TerrainMap import TerrainMap
 from ActionStrategy import ActionStrategy
 from NaiveStrategy import NaiveStrategy
-
+from Formation import Formation
+from Ownership import Ownership
 
 class MyStrategy:
     game = None
@@ -29,6 +32,10 @@ class MyStrategy:
     actionQueue = None
 
     strategy = None
+
+    _sos_mode = False
+    _sos_coords = None
+    _sos_pause = 0
 
     def initialize_strategy(self):
         self.initializer = Initializer(self.world)
@@ -83,9 +90,29 @@ class MyStrategy:
             else:
                 self.strategy = NaiveStrategy(self.actionQueue, self.world, self.__weather_map, self.__terrain_map)
 
+        #if self.strategy:
+        if False:
+            if not self._sos_mode:
+                if self.__save_our_souls(world):
+                    return
+                else:
+                    if self._sos_pause > 0:
+                        if not self.actionQueue.is_action_in_queue(ActionType.SCALE):
+                            self._sos_pause = self._sos_pause - 1
+                        else:
+                            self._sos_pause = self._sos_pause + 1
+            else:
+                if self.__comeback_after_strike(world):
+                    return
+                else:
+                    if not self.actionQueue.is_action_in_queue(ActionType.SCALE):
+                        self._sos_pause = self._sos_pause + 1
+
         if me.remaining_action_cooldown_ticks > 0:
             return
         if self.execute_delayed_action(move, world):
+            return
+        if self._sos_pause > 0:
             return
         self.determine_following_actions()
         self.execute_delayed_action(move, world)
@@ -95,6 +122,39 @@ class MyStrategy:
             return
         self.strategy.initialize_tick(self.game, self.world, self.me, self.allVehicles, self.updateTickByVehicleId)
         self.strategy.determine_following_actions(self.updatedVehicleXY)
+
+    def __save_our_souls(self, world: World):
+        opponent = world.get_opponent_player()
+        next_nuclear_strike_tick = opponent.next_nuclear_strike_tick_index
+        next_nuclear_strike_tick = 2800 if world.tick_index in range(2770, 2800) else -1
+        if next_nuclear_strike_tick == -1:
+            return False
+        x = opponent.next_nuclear_strike_x
+        y = opponent.next_nuclear_strike_y
+        f = Formation(self.allVehicles, self.me, ownership=Ownership.ALLY)
+        x, y = f.find_center()
+        topleft = (max(y - 60, 0), max(x - 60, 0))
+        bottomright = (min(y + 60, world.height), min(x + 60, world.width))
+        self.actionQueue.clear()
+        self.actionQueue.push(Action.clear_and_select())
+        self.actionQueue.push(Action.move(0, 0))
+        self.actionQueue.push(Action.scale(x, y, 2.5))
+        self._sos_mode = True
+        self._sos_coords = (x, y)
+        self._sos_pause = 0
+        return True
+
+    def __comeback_after_strike(self, world: World):
+        opponent = world.get_opponent_player()
+        next_nuclear_strike_tick = opponent.next_nuclear_strike_tick_index
+        next_nuclear_strike_tick = 2800 if world.tick_index in range(2770, 2800) else -1
+        if next_nuclear_strike_tick != -1:
+            return False
+        if not self.actionQueue.is_action_in_queue(ActionType.SCALE):
+            self.actionQueue.push(Action.clear_and_select())
+            self.actionQueue.push(Action.scale(self._sos_coords[0], self._sos_coords[1], 0.6))
+        self._sos_mode = False
+        return True
 
 
 

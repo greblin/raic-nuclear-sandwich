@@ -64,7 +64,7 @@ class NaiveStrategy(ActionStrategy):
                 angle = -angle
             if abs(angle) > math.pi / 8:
                 rot_angle = angle / 2
-                self.actionQueue.push(Action.clear_and_select())
+                #self.actionQueue.push(Action.clear_and_select())
                 self.actionQueue.push(Action.rotate(xc, yc, -rot_angle, 0.18))
                 rot_matrix = np.array([[np.cos(rot_angle), -np.sin(rot_angle)],
                                        [np.sin(rot_angle), np.cos(rot_angle)]])
@@ -81,7 +81,7 @@ class NaiveStrategy(ActionStrategy):
                 to_bottomright = from_bottomright[0] + y_diff, from_bottomright[1] + x_diff
                 speed_factor = self._terrain_map.get_minimum_speed_factor_on_path(from_topleft, from_bottomright, to_topleft, to_bottomright)
 
-                self.actionQueue.push(Action.clear_and_select())
+                #self.actionQueue.push(Action.clear_and_select())
                 self.actionQueue.push(Action.move(x_diff, y_diff, 0.3 * speed_factor))
 
 

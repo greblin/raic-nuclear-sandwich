@@ -13,4 +13,6 @@ class InitializerStep6_Rotate(CommandBuilder):
         # yc, xc = f.find_geometrical_center()
         # prepared_commands.append(Action.clear_and_select())
         # prepared_commands.append(Action.rotate(xc, yc, -pi / 4, 0.18))
+        prepared_commands.append(Action.clear_and_select())
+        prepared_commands.append(Action.move(0, 1, 0.18))
         return prepared_commands

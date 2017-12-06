@@ -30,6 +30,11 @@ class ActionQueue:
         self.__action_in_queue[action_name] = self.__action_in_queue[action_name] + 1
         self.queue.append(action)
 
+    def clear(self):
+        for i in range(ActionType.TACTICAL_NUCLEAR_STRIKE + 1):
+            self.__action_in_queue.insert(i, 0)
+        self.queue.clear()
+
     def get_last_action_tick(self, action):
         return self.__last_action_tick[action]
 
