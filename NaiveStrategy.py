@@ -45,7 +45,7 @@ class NaiveStrategy(ActionStrategy):
                 for facility in self.world.facilities:
                     if facility.owner_player_id != self.me.id:
                         f_x, f_y = facility.left + 32, facility.top + 32
-                        if not (96 <= f_x <= Constant.WORLD_SIZE - 96 and 96 <= f_y <= Constant.WORLD_SIZE):
+                        if not (96 <= f_x <= Constant.WORLD_SIZE - 96 and 96 <= f_y <= Constant.WORLD_SIZE - 96):
                             continue
                         if (target_x is None or target_y is None)\
                             or ((f_x - xc) ** 2 + (f_y - yc) ** 2 < (target_x - xc) ** 2 + (target_y - yc) ** 2):

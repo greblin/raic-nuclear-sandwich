@@ -92,8 +92,8 @@ class MyStrategy:
             else:
                 self.strategy = NaiveStrategy(self.actionQueue, self.world, self.__weather_map, self.__terrain_map)
 
-        #if self.strategy:
-        if False:
+        if self.strategy:
+        #if False:
             if not self._sos_mode:
                 if self.__save_our_souls(world):
                     return
