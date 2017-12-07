@@ -3,6 +3,7 @@ from model.Move import Move
 from model.Player import Player
 from model.World import World
 from model.ActionType import ActionType
+import math
 
 from Constant import Constant
 from Initializer import Initializer
@@ -36,6 +37,7 @@ class MyStrategy:
     _sos_mode = False
     _sos_coords = None
     _sos_pause = 0
+    _sos_group = 99
 
     def initialize_strategy(self):
         self.initializer = Initializer(self.world)
@@ -95,25 +97,25 @@ class MyStrategy:
             if not self._sos_mode:
                 if self.__save_our_souls(world):
                     return
-                else:
-                    if self._sos_pause > 0:
-                        if not self.actionQueue.is_action_in_queue(ActionType.SCALE):
-                            self._sos_pause = self._sos_pause - 1
-                        else:
-                            self._sos_pause = self._sos_pause + 1
+                #else:
+                #    if self._sos_pause > 0:
+                #        if not self.actionQueue.is_action_in_queue(ActionType.SCALE):
+                #            self._sos_pause = self._sos_pause - 1
+                #        else:
+                #            self._sos_pause = self._sos_pause + 1
             else:
                 if self.__comeback_after_strike(world):
                     return
-                else:
-                    if not self.actionQueue.is_action_in_queue(ActionType.SCALE):
-                        self._sos_pause = self._sos_pause + 1
+                #else:
+                #    if not self.actionQueue.is_action_in_queue(ActionType.SCALE):
+                #        self._sos_pause = self._sos_pause + 1
 
         if me.remaining_action_cooldown_ticks > 0:
             return
         if self.execute_delayed_action(move, world):
             return
-        if self._sos_pause > 0:
-            return
+        #if self._sos_pause > 0:
+        #    return
         self.determine_following_actions()
         self.execute_delayed_action(move, world)
 
@@ -126,34 +128,60 @@ class MyStrategy:
     def __save_our_souls(self, world: World):
         opponent = world.get_opponent_player()
         next_nuclear_strike_tick = opponent.next_nuclear_strike_tick_index
-        next_nuclear_strike_tick = 2800 if world.tick_index in range(2770, 2800) else -1
+        # test
+        # next_nuclear_strike_tick = 2800 if world.tick_index in range(2770, 2800) else -1
+        # /test
         if next_nuclear_strike_tick == -1:
             return False
+        f = Formation(self.allVehicles, self.me, ownership=Ownership.ALLY)
         x = opponent.next_nuclear_strike_x
         y = opponent.next_nuclear_strike_y
-        f = Formation(self.allVehicles, self.me, ownership=Ownership.ALLY)
-        x, y = f.find_center()
-        topleft = (max(y - 60, 0), max(x - 60, 0))
-        bottomright = (min(y + 60, world.height), min(x + 60, world.width))
+        kill_factor = f.calc_nuclear_kill_factor(x, y)
+        if kill_factor['killed'] < 8:
+            return False
+        # test
+        # y, x = f.find_center()
+        # /test
+        next_nuclear_strike_vehicle_id = opponent.next_nuclear_strike_vehicle_id
+        # test
+        # of = Formation(self.allVehicles, self.me, ownership=Ownership.ENEMY)
+        # next_nuclear_strike_vehicle_id = of._formation[0].id
+        # /test
+        if next_nuclear_strike_vehicle_id == -1:
+            return False
+        from_x, from_y = self.vehicleById[next_nuclear_strike_vehicle_id].x, self.vehicleById[next_nuclear_strike_vehicle_id].y
+        is_aerial = self.vehicleById[next_nuclear_strike_vehicle_id].aerial
+        sos_vector = (y - from_y, x - from_x)
+        sos_vector_norm = (90 if is_aerial else 60) / math.hypot(sos_vector[0], sos_vector[1])
+        sos_vector = (sos_vector[0] * sos_vector_norm, sos_vector[1] * sos_vector_norm)
+        topleft = f.find_topleft()
+        bottomright = f.find_bottomright()
+        if topleft[0] + sos_vector[0] < 0 or topleft[1] + sos_vector[1] < 0:
+            sos_vector = (-sos_vector[0], -sos_vector[1])
+        elif bottomright[0] + sos_vector[0] >= self.world.height or bottomright[1] + sos_vector[1] >= self.world.width:
+            sos_vector = (-sos_vector[0], -sos_vector[1])
+        #print(sos_vector)
         self.actionQueue.clear()
-        self.actionQueue.push(Action.clear_and_select())
-        self.actionQueue.push(Action.move(0, 0))
-        self.actionQueue.push(Action.scale(x, y, 2.5))
+        self.actionQueue.push(Action.move(sos_vector[1], sos_vector[0], 0.3))
         self._sos_mode = True
-        self._sos_coords = (x, y)
-        self._sos_pause = 0
+        #self._sos_coords = (x, y)
+        #self._sos_pause = 0
         return True
 
     def __comeback_after_strike(self, world: World):
         opponent = world.get_opponent_player()
         next_nuclear_strike_tick = opponent.next_nuclear_strike_tick_index
-        next_nuclear_strike_tick = 2800 if world.tick_index in range(2770, 2800) else -1
+        # test
+        # next_nuclear_strike_tick = 2800 if world.tick_index in range(2770, 2800) else -1
+        # /test
         if next_nuclear_strike_tick != -1:
             return False
-        if not self.actionQueue.is_action_in_queue(ActionType.SCALE):
-            self.actionQueue.push(Action.clear_and_select())
-            self.actionQueue.push(Action.scale(self._sos_coords[0], self._sos_coords[1], 0.6))
+        if not self.actionQueue.is_action_in_queue(ActionType.MOVE):
+            self.actionQueue.push(Action.move(0, 0))
+        else:
+            self.actionQueue.clear()
         self._sos_mode = False
+        #self._sos_group = self._sos_group - 1
         return True
 
 
