@@ -38,7 +38,12 @@ class NaiveStrategy(ActionStrategy):
                 return
             f = Formation(self.allVehicles, self.me, ownership=Ownership.ALLY)
             xc, yc = f.find_center()
-            target_x, target_y = (Formation(self.allVehicles, self.me, ownership=Ownership.ENEMY)).find_nearest(xc, yc)
+            #target_x, target_y = (Formation(self.allVehicles, self.me, ownership=Ownership.ENEMY)).find_nearest(xc, yc)
+            points = self.calc_maximum_density_centers(self.allVehicles)
+            if len(points) > 0:
+                pp_x, pp_y, target_count = points[0]
+                enemies = Formation(self.allVehicles, self.me, ownership=Ownership.ENEMY, distance_limit=(pp_x, pp_y, 80))
+                target_x, target_y = enemies.find_nearest(xc, yc)
             target_x = target_x - 10 if target_x is not None else None
             target_y = target_y - 10 if target_y is not None else None
             if (target_x is None) or (target_y is None) or ((target_x - xc) ** 2 + (target_y - yc) ** 2 >= 175 * 175):
@@ -122,7 +127,7 @@ class NaiveStrategy(ActionStrategy):
     def nuclear_strike(self, all_vehicles, points):
         for x, y, count in points:
             ally_formation = Formation(all_vehicles, self.me, ownership=Ownership.ALLY, distance_limit=(x, y, 50))
-            ally_estimated_damage= ally_formation.calc_nuclear_kill_factor(x, y)
+            ally_estimated_damage = ally_formation.calc_nuclear_kill_factor(x, y)
             if ally_estimated_damage['killed'] + ally_estimated_damage['survived'] == 0:
                 continue
             highlighter_id = ally_formation.find_nuclear_strike_highlighter(x, y, self.game, self.world)
