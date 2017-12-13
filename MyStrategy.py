@@ -119,12 +119,18 @@ class MyStrategy:
         f = Formation(self.allVehicles, self.me, ownership=Ownership.ALLY)
         x = opponent.next_nuclear_strike_x
         y = opponent.next_nuclear_strike_y
-        kill_factor = f.calc_nuclear_kill_factor(x, y)
-        if kill_factor['total_damage'] < 1200:
-            return False
+
         next_nuclear_strike_vehicle_id = opponent.next_nuclear_strike_vehicle_id
         if next_nuclear_strike_vehicle_id == -1:
             return False
+        if next_nuclear_strike_vehicle_id not in self.vehicleById:
+            return False
+        is_aerial = self.vehicleById[next_nuclear_strike_vehicle_id].aerial
+
+        kill_factor = f.calc_nuclear_kill_factor(x, y)
+        if kill_factor['total_damage'] < 1200 and kill_factor['survived'] > kill_factor['killed'] * 5 and not is_aerial:
+            return False
+
         from_x, from_y = self.vehicleById[next_nuclear_strike_vehicle_id].x, self.vehicleById[next_nuclear_strike_vehicle_id].y
         sos_vector = (y - from_y, x - from_x)
         sos_vector_norm = 120 / math.hypot(sos_vector[0], sos_vector[1])

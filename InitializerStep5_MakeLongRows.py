@@ -13,6 +13,8 @@ class InitializerStep5_MakeLongRows(CommandBuilder):
             if offset == 0:
                 continue
             f = Formation(self._all_vehicles, self._me, ownership=Ownership.ALLY, group_number=group)
+            if f.get_count() == 0:
+                continue
             from_topleft, from_bottomright = f.find_topleft(), f.find_bottomright()
             to_topleft, to_bottomright = (from_topleft[0] + offset * group_height, from_topleft[1]), \
                                          (from_bottomright[0] + offset * group_height, from_bottomright[1])

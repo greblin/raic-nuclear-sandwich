@@ -40,13 +40,26 @@ class NaiveStrategy(ActionStrategy):
             xc, yc = f.find_center()
             #target_x, target_y = (Formation(self.allVehicles, self.me, ownership=Ownership.ENEMY)).find_nearest(xc, yc)
             points = self.calc_maximum_density_centers(self.allVehicles)
+            # primitive_mode = False
+            target_x, target_y = None, None
             if len(points) > 0:
                 pp_x, pp_y, target_count = points[0]
+            #    if target_count <= 6 and len(points) > 15:
+            #        primitive_mode = True
+            #    else:
                 enemies = Formation(self.allVehicles, self.me, ownership=Ownership.ENEMY, distance_limit=(pp_x, pp_y, 80))
                 target_x, target_y = enemies.find_nearest(xc, yc)
+
+            #if primitive_mode:
+            #    if len(self.world.facilities) == 0:
+            #        return
+            #    else:
+            #        target_y, target_x = None, None
+
             target_x = target_x - 10 if target_x is not None else None
             target_y = target_y - 10 if target_y is not None else None
-            if (target_x is None) or (target_y is None) or ((target_x - xc) ** 2 + (target_y - yc) ** 2 >= 175 * 175):
+            if (self.world.tick_index < 10000) and \
+                    ((target_x is None) or (target_y is None) or ((target_x - xc) ** 2 + (target_y - yc) ** 2 >= 175 * 175)):
                 for facility in self.world.facilities:
                     if facility.owner_player_id != self.me.id:
                         f_x, f_y = facility.left + 32, facility.top + 32
