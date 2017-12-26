@@ -58,7 +58,7 @@ class NaiveStrategy(ActionStrategy):
 
             target_x = target_x - 10 if target_x is not None else None
             target_y = target_y - 10 if target_y is not None else None
-            if (self.world.tick_index < 10000) and \
+            if (self.world.tick_index < 10000 or self.game.fog_of_war_enabled) and \
                     ((target_x is None) or (target_y is None) or ((target_x - xc) ** 2 + (target_y - yc) ** 2 >= 175 * 175)):
                 for facility in self.world.facilities:
                     if facility.owner_player_id != self.me.id:

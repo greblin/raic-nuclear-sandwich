@@ -128,7 +128,7 @@ class MyStrategy:
         is_aerial = self.vehicleById[next_nuclear_strike_vehicle_id].aerial
 
         kill_factor = f.calc_nuclear_kill_factor(x, y)
-        if kill_factor['total_damage'] < 1200 and kill_factor['survived'] > kill_factor['killed'] * 5 and not is_aerial:
+        if kill_factor['total_damage'] < 700 and kill_factor['survived'] > kill_factor['killed'] * 5 and not is_aerial:
             return False
 
         from_x, from_y = self.vehicleById[next_nuclear_strike_vehicle_id].x, self.vehicleById[next_nuclear_strike_vehicle_id].y
